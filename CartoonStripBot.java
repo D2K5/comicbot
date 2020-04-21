@@ -114,7 +114,7 @@ public class CartoonStripBot extends PircBot{
         bot.setVerbose(true);
         bot.setName(p.getProperty("nick"));
         bot.setLogin(p.getProperty("login"));
-        bot.connect(p.getProperty("server"), p.getProperty("port"), p.getProperty("password"));
+        bot.connect(p.getProperty("server"), Integer.parseInt(p.getProperty("port")), p.getProperty("password"));
         bot.joinChannel(channel);
     }
     
