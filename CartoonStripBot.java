@@ -83,7 +83,7 @@ public class CartoonStripBot extends PircBot{
             }
             try {
                 boolean result = ComicTest.createCartoonStrip(_outputDirectory, texts, nicks);
-                //sendMessage(_channel, "Generated new comic at: " + _helpString);
+                sendMessage(_channel, _helpString);
             }
             catch (IOException e) {
                 //sendMessage(_channel, "Urgh, I'm crap cos I just did this: " + e);
@@ -114,7 +114,7 @@ public class CartoonStripBot extends PircBot{
         bot.setVerbose(true);
         bot.setName(p.getProperty("nick"));
         bot.setLogin(p.getProperty("login"));
-        bot.connect(p.getProperty("server"));
+        bot.connect(p.getProperty("server"), p.getProperty("port"), p.getProperty("password"));
         bot.joinChannel(channel);
     }
     
