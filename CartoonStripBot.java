@@ -26,21 +26,18 @@ import org.jibble.pircbot.*;
  * @author Paul Mutton http://www.jibble.org/comicbot/
  */
 public class CartoonStripBot extends PircBot{
-    
+
     public static final int MAX_QUOTES = 9;
-    
-    public CartoonStripBot(File outputDirectory, String helpString, String channel) {
+
+    public CartoonStripBot(File outputDirectory, String helpString, String channel, String triggers) {
         _outputDirectory = outputDirectory;
         _helpString = helpString;
         _channel = channel;
+	_triggers = triggers;
     }
  
     public void onMessage(String channel, String sender, String login, String hostname, String message) {
         String lowMsg = message.trim().toLowerCase();
-        if (lowMsg.startsWith(getName().toLowerCase()) && lowMsg.indexOf("help") >= 0) {
-            sendMessage(channel, _helpString);
-            return;
-        }
         processMessage(sender, message);
     }
     
@@ -52,7 +49,7 @@ public class CartoonStripBot extends PircBot{
         message = message.trim();
         String lowMsg = message.toLowerCase();
         
-        String triggers = "lol;rofl;nigger;faggot;fuck you;lmao;hah;heh;aha";
+        String triggers = _triggers;
         String[] split = triggers.split(";");
         Boolean found = false;
         
@@ -82,8 +79,10 @@ public class CartoonStripBot extends PircBot{
                 nicks[i] = nick;
             }
             try {
-                boolean result = ComicTest.createCartoonStrip(_outputDirectory, texts, nicks);
-                sendMessage(_channel, _helpString);
+                String result = ComicTest.createCartoonStrip(_outputDirectory, texts, nicks);
+		if (result != "false") {
+                        sendMessage(_channel, _helpString + result);
+		}
             }
             catch (IOException e) {
                 //sendMessage(_channel, "Urgh, I'm crap cos I just did this: " + e);
@@ -110,7 +109,8 @@ public class CartoonStripBot extends PircBot{
             System.exit(1);
         }
         String channel = p.getProperty("channel");
-        CartoonStripBot bot = new CartoonStripBot(outputDirectory, p.getProperty("helpString"), channel);
+	String triggers = p.getProperty("triggers");
+        CartoonStripBot bot = new CartoonStripBot(outputDirectory, p.getProperty("helpString"), channel, triggers);
         bot.setVerbose(true);
         bot.setName(p.getProperty("nick"));
         bot.setLogin(p.getProperty("login"));
@@ -121,6 +121,7 @@ public class CartoonStripBot extends PircBot{
     private File _outputDirectory;
     private String _helpString;
     private String _channel;
+    private String _triggers;
     private LinkedList _quotes = new LinkedList();
     private LinkedList _senders = new LinkedList();
     

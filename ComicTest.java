@@ -82,8 +82,8 @@ public class ComicTest {
     }
 
     // Takes an array of texts (things people say) and an associated
-    // array that contains the nick (the person who said the thing).    
-    public static boolean createCartoonStrip(File outputDirectory, String[] texts, String[] nicks) throws IOException {
+    // array that contains the nick (the person who said the thing).
+    public static String createCartoonStrip(File outputDirectory, String[] texts, String[] nicks) throws IOException {
         // Find all ini files in the data directory.
         File[] filenames = new File("./data").listFiles();
         ArrayList inis = new ArrayList();
@@ -146,10 +146,10 @@ public class ComicTest {
             int[] n = (int[])positions.removeFirst();
             // Add bubble text
             String text = texts[texts.length - numBubbles + i];
-            if (text.length() > maxLength) {
-                System.out.println(text.length() + " > " + maxLength);
-                return false;
-            }
+            // if (text.length() > maxLength) {
+            //    System.out.println(text.length() + " > " + maxLength);
+            //    return "false";
+            //}
             addText(image, text, b[0], b[1], b[2], b[3]);
             System.out.println("adding caption number " + i);
         }
@@ -162,9 +162,10 @@ public class ComicTest {
         ImageIO.write(image, "png", new File(outputDirectory, "cartoon.png"));
         
         // Write an archive image, too.
-        ImageIO.write(image, "png", new File(outputDirectory, "cartoon-" + (date.getTime()/1000) + "-" + backgroundFilename));
+	String archiveFilename = "cartoon-" + (date.getTime()/1000) + "-" + backgroundFilename;
+        ImageIO.write(image, "png", new File(outputDirectory, archiveFilename));
         
-        return true;
+        return archiveFilename;
     }
     
     //public static void main(String[] args) throws IOException {
