@@ -16,9 +16,8 @@ $Id: CartoonStripBot.java,v 1.4 2004/02/01 13:19:54 pjm2 Exp $
  
 import java.io.*;
 import java.util.*;
-import java.net.URL;
-import java.net.MalformedURLException;
 import java.util.regex.*; 
+
 import org.jibble.pircbot.*;
  
 /**
@@ -96,30 +95,28 @@ public class CartoonStripBot extends PircBot{
             _senders.clear();
         }
         else {
-            String [] parts = message.split("\\s");
-            for( String item : parts ) try {
-                URL url = new URL(item);
-	        can_add = false;
-                System.out.println("found url "+ url + ", ignoring" );    
-            } catch (MalformedURLException e) {
-	        can_add = true;
-            }
+	   message = message.replaceAll("((http|ftp|https):\\/\\/)?[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?", "");
+	   message = message.replaceAll("\\<.*?>", "");
+	   message = message.replaceAll(":[^:\\s]*(?:::[^:\\s]*)*:", "");
 
-            Pattern HTML = Pattern.compile("<(\\w+)( +.+)*>((.*))</\\1>");
-            Matcher matcher = HTML.matcher(message);
-            if (matcher.find()) {
-	        System.out.println("found html " + message + ", ignoring");
-	        can_add = false;
-            }
+	   if(message == null || message == " " || message == "" || message.isEmpty()) {
+		System.out.println("no message, ignoring");
+		can_add = false;
+	   }
 
-	    if (can_add){
+	   if (message.contains("uploaded an image:")) {
+		can_add = false;
+	   }
+
+	   if (can_add){
+		System.out.println("Quote Added: " + message);
             	_quotes.add(message);
             	_senders.add(sender);
             	if (_quotes.size() > MAX_QUOTES) {
              	   _quotes.removeFirst();
              	   _senders.removeFirst();
             	}
-	    }
+	   }
         }
     }
           
