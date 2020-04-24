@@ -16,7 +16,9 @@ $Id: CartoonStripBot.java,v 1.4 2004/02/01 13:19:54 pjm2 Exp $
  
 import java.io.*;
 import java.util.*;
- 
+import java.net.URL;
+import java.net.MalformedURLException;
+import java.util.regex.*; 
 import org.jibble.pircbot.*;
  
 /**
@@ -48,11 +50,14 @@ public class CartoonStripBot extends PircBot{
     public void processMessage(String sender, String message) {
         message = message.trim();
         String lowMsg = message.toLowerCase();
-        
+	        
+
+
         String triggers = _triggers;
         String[] split = triggers.split(";");
         Boolean found = false;
-        
+	Boolean can_add = true;        
+
         for (int i = 0; i < split.length; i++)
         {
             if (lowMsg.startsWith(split[i]))
@@ -91,12 +96,30 @@ public class CartoonStripBot extends PircBot{
             _senders.clear();
         }
         else {
-            _quotes.add(message);
-            _senders.add(sender);
-            if (_quotes.size() > MAX_QUOTES) {
-                _quotes.removeFirst();
-                _senders.removeFirst();
+            String [] parts = message.split("\\s");
+            for( String item : parts ) try {
+                URL url = new URL(item);
+	        can_add = false;
+                System.out.println("found url "+ url + ", ignoring" );    
+            } catch (MalformedURLException e) {
+	        can_add = true;
             }
+
+            Pattern HTML = Pattern.compile("<(\\w+)( +.+)*>((.*))</\\1>");
+            Matcher matcher = HTML.matcher(message);
+            if (matcher.find()) {
+	        System.out.println("found html " + message + ", ignoring");
+	        can_add = false;
+            }
+
+	    if (can_add){
+            	_quotes.add(message);
+            	_senders.add(sender);
+            	if (_quotes.size() > MAX_QUOTES) {
+             	   _quotes.removeFirst();
+             	   _senders.removeFirst();
+            	}
+	    }
         }
     }
           
