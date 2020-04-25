@@ -53,9 +53,8 @@ public class CartoonStripBot extends PircBot{
         message = message.replaceAll("[^\\p{ASCII}]","");
         message = message.replaceAll("\\p{M}", "");
 
-	    //trim spaces
+        //trim spaces
         message = message.trim();
-        System.out.println("Processed message: " + message);
         processMessage(sender, message);
     }
 
@@ -74,6 +73,12 @@ public class CartoonStripBot extends PircBot{
         //is empty?
         if(message == null || message == " " || message == "" || message.isEmpty()) {
             System.out.println("no message, ignoring");
+            can_add = false;
+        }
+
+        //is a command? (messages starting with !)
+        if (message.startsWith("!")) {
+            System.out.println("message is a command, ignoring");
             can_add = false;
         }
 
