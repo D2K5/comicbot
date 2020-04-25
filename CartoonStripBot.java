@@ -37,18 +37,6 @@ public class CartoonStripBot extends PircBot{
     }
 
     public void onMessage(String channel, String sender, String login, String hostname, String message) {
-        String lowMsg = message.trim().toLowerCase();
-        processMessage(sender, message);
-    }
-
-    public void onAction(String sender, String login, String hostname, String target, String action) {
-        processMessage(sender, "Me " + action);
-    }
- 
-    public void processMessage(String sender, String message) {
-	Boolean can_add = true;
-	Boolean found = false;
-
         //strip urls
         message = message.replaceAll("((http|ftp|https):\\/\\/)?[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?", "");
 
@@ -61,14 +49,27 @@ public class CartoonStripBot extends PircBot{
         //strip all non-alphanumeric/language/etc characters (remove emoji)
         message = message.replaceAll("[^\\p{L}\\p{M}\\p{N}\\p{P}\\p{Z}\\p{Cf}\\p{Cs}\\s]","");
 
-	//trim spaces
-        message = message.trim();
+        //strip special characters
+        message = message.replaceAll("[^\\p{ASCII}]","");
+        message = message.replaceAll("\\p{M}", "");
 
-        //contains an upload?
-        if (message.contains("ACTION uploaded") || message.contains("Me uploaded")) {
+	    //trim spaces
+        message = message.trim();
+        System.out.println("Processed message: " + message);
+        processMessage(sender, message);
+    }
+
+    public void onAction(String sender, String login, String hostname, String target, String action) {
+        if (action.contains("ACTION uploaded")){
             System.out.println("contains an upload, ignoring");
-            can_add = false;
+        }else{
+            processMessage(sender, "*" + action + "*");
         }
+    }
+ 
+    public void processMessage(String sender, String message) {
+        Boolean can_add = true;
+        Boolean found = false;
 
         //is empty?
         if(message == null || message == " " || message == "" || message.isEmpty()) {

@@ -1,3 +1,3 @@
-javac -classpath .;./pircbot.jar *.java
-java -classpath .;./pircbot.jar CartoonStripBot
+javac -classpath .;./pircbot/pircbot-1.5.0.jar *.java
+java -classpath .;./pircbot/pircbot-1.5.0.jar CartoonStripBot
 pause
