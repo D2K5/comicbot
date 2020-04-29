@@ -156,14 +156,15 @@ public class ComicTest {
             can_make = false;
             System.out.println(textsCount + " < " + bubbleCount);
             System.out.println("Attempting to find a frame with less bubbles...");
-            createCartoonStrip(outputDirectory, texts, nicks, tries + 1);
+            return createCartoonStrip(outputDirectory, texts, nicks, tries + 1);
         }
+        tries = 0;
         //not enough lines? try a different frame
         if ((tries < frameCount) && (textsCount > bubbleCount)) {
             can_make = false;
             System.out.println(textsCount + " > " + bubbleCount);
             System.out.println("Attempting to find a frame with more bubbles...");
-            createCartoonStrip(outputDirectory, texts, nicks, tries + 1);
+            return createCartoonStrip(outputDirectory, texts, nicks, tries + 1);
         }
         if (can_make){
             for (int i = 0; i < numBubbles; i++) {
