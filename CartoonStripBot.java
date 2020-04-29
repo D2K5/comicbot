@@ -17,7 +17,6 @@ $Id: CartoonStripBot.java,v 1.4 2004/02/01 13:19:54 pjm2 Exp $
 import java.io.*;
 import java.util.*;
 import java.util.regex.*; 
-
 import org.jibble.pircbot.*;
  
 /**
@@ -27,7 +26,8 @@ import org.jibble.pircbot.*;
  * @author Paul Mutton http://www.jibble.org/comicbot/
  */
 public class CartoonStripBot extends PircBot{
-    public static final int MAX_QUOTES = 9;
+    public static final int MAX_QUOTES = 7;
+    public static final int MIN_QUOTES = 2;
 
     public CartoonStripBot(File outputDirectory, String helpString, String channel, String triggers) {
         _outputDirectory = outputDirectory;
@@ -47,10 +47,10 @@ public class CartoonStripBot extends PircBot{
         message = message.replaceAll(":[^:\\s]*(?:::[^:\\s]*)*:", "");
 
         //strip all non-alphanumeric/language/etc characters (remove emoji)
-        message = message.replaceAll("[^\\p{L}\\p{M}\\p{N}\\p{P}\\p{Z}\\p{Cf}\\p{Cs}\\s]","");
+        message = message.replaceAll("[^\\p{L}\\p{M}\\p{N}\\p{P}\\p{Z}\\p{Cf}\\p{Cs}\\s^£$¢€¥₹₽]","");
 
         //strip special characters
-        message = message.replaceAll("[^\\p{ASCII}]","");
+        message = message.replaceAll("[^\\p{ASCII}^£$¢€¥₹₽]","");
         message = message.replaceAll("\\p{M}", "");
 
         //trim spaces
@@ -59,7 +59,7 @@ public class CartoonStripBot extends PircBot{
     }
 
     public void onAction(String sender, String login, String hostname, String target, String action) {
-        if (action.contains("ACTION uploaded")){
+        if (action.contains("uploaded")){
             System.out.println("contains an upload, ignoring");
         }else{
             processMessage(sender, "*" + action + "*");
@@ -95,24 +95,16 @@ public class CartoonStripBot extends PircBot{
             }
         }
 
-        if (_quotes.size() == MAX_QUOTES && found && can_add) {
+        if ((_quotes.size() <= MAX_QUOTES) && (_quotes.size() >= MIN_QUOTES) && found && can_add) {
             // add the current quote, so that it's always the last thing said
-            _quotes.add(message);
-            _senders.add(sender);
+            //_quotes.add(message);
+            //_senders.add(sender);
 
             // Let's make a cartoon!
-            String[] texts = new String[MAX_QUOTES];
-            String[] nicks = new String[MAX_QUOTES];
-            Iterator quoteIt = _quotes.iterator();
-            Iterator senderIt = _senders.iterator();
-            for (int i = 0; i < MAX_QUOTES; i++) {
-                String text = (String)quoteIt.next();
-                String nick = (String)senderIt.next();
-                texts[i] = text;
-                nicks[i] = nick;
-            }
             try {
-                String result = ComicTest.createCartoonStrip(_outputDirectory, texts, nicks);
+                //System.out.println(_quotes);
+                //System.out.println(_senders);
+                String result = ComicTest.createCartoonStrip(_outputDirectory, _quotes, _senders, 1);
                 if (result != "false") {
                     sendMessage(_channel, _helpString + result);
                 }
@@ -124,12 +116,12 @@ public class CartoonStripBot extends PircBot{
             _senders.clear();
         } else {
             if (can_add){
-                System.out.println("Quote Added: " + message);
+                System.out.println("Quote Added: <" + sender + "> " + message);
                 _quotes.add(message);
                 _senders.add(sender);
                 if (_quotes.size() > MAX_QUOTES) {
-                    _quotes.removeFirst();
-                    _senders.removeFirst();
+                    _quotes.remove(0);
+                    _senders.remove(0);
                 }
             }
         }
@@ -157,6 +149,6 @@ public class CartoonStripBot extends PircBot{
     private String _helpString;
     private String _channel;
     private String _triggers;
-    private LinkedList _quotes = new LinkedList();
-    private LinkedList _senders = new LinkedList();
+    private ArrayList<String> _quotes = new ArrayList<String>();
+    private ArrayList<String> _senders = new ArrayList<String>();
 }

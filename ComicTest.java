@@ -83,17 +83,24 @@ public class ComicTest {
 
     // Takes an array of texts (things people say) and an associated
     // array that contains the nick (the person who said the thing).
-    public static String createCartoonStrip(File outputDirectory, String[] texts, String[] nicks) throws IOException {
+    public static String createCartoonStrip(File outputDirectory, ArrayList<String> texts, ArrayList<String> nicks, int tries) throws IOException {
         // Find all ini files in the data directory.
+        boolean can_make = true;
         File[] filenames = new File("./data").listFiles();
         ArrayList inis = new ArrayList();
+        int frameCount = 0;
         for (int i = 0; i < filenames.length; i++) {
             if (filenames[i].getName().endsWith(".ini")) {
                 inis.add(filenames[i]);
+                frameCount++;
             }
         }
         // Pick a random ini file to make the cartoon with.
         File file = (File)inis.get((int)(Math.random()*inis.size()));
+
+        // Pick a specific ini file to make the cartoon with.
+        //File file = (File)inis.get(tries);
+
         // Get the properties from the file.
         Properties p = new Properties();
         p.load(new FileInputStream(file));
@@ -117,7 +124,7 @@ public class ComicTest {
         LinkedList positions = new LinkedList();
         
         // Parse up to texts.length things to stick into the cartoon.
-        for (int i = 1; i <= texts.length; i++) {
+        for (int i = 1; i <= texts.size(); i++) {
             String bubblePos = p.getProperty("bubble" + i);
             String nickPos = p.getProperty("nick" + i);
             if (bubblePos == null || nickPos == null) {
@@ -140,37 +147,54 @@ public class ComicTest {
         }
         
         int numBubbles = positions.size() / 2;
-        for (int i = 0; i < numBubbles; i++) {
-            int maxLength = Integer.parseInt(p.getProperty("maxlength" + (i + 1), "20"));
-            int[] b = (int[])positions.removeFirst();
-            int[] n = (int[])positions.removeFirst();
-            // Add bubble text
-            String text = texts[texts.length - numBubbles + i];
-            // if (text.length() > maxLength) {
-            //    System.out.println(text.length() + " > " + maxLength);
-            //    return "false";
-            //}
-            addText(image, text, b[0], b[1], b[2], b[3]);
-            System.out.println("adding caption number " + i);
+        int bubbleCount = numBubbles;
+        int textsCount = texts.size();
+
+        System.out.println("texts: " + textsCount + " | bubbles: " + bubbleCount + " (" + backgroundFilename + ") random try: " + tries + "/" + frameCount + " different frames");
+        //too few lines? try a different frame
+        if ((tries < frameCount) && (textsCount < bubbleCount)) {
+            can_make = false;
+            System.out.println(textsCount + " < " + bubbleCount);
+            System.out.println("Attempting to find a frame with less bubbles...");
+            createCartoonStrip(outputDirectory, texts, nicks, tries + 1);
         }
-        
-        
-        //addText(image, "Hello", 100, 100, 100, 100);
-        //addText(image, "Oooh, here's a much longer sentence.", 300, 100, 100, 100);
-        //addText(image, "Hmm, so you reckon that was a long sentence do ya? I think it's about time you saw how long these sentences really can be, dude!", 500, 100, 100, 100);
-        
-        ImageIO.write(image, "png", new File(outputDirectory, "cartoon.png"));
-        
-        // Write an archive image, too.
-	String archiveFilename = "cartoon-" + (date.getTime()/1000) + "-" + backgroundFilename;
-        ImageIO.write(image, "png", new File(outputDirectory, archiveFilename));
-        
-        return archiveFilename;
+        //not enough lines? try a different frame
+        if ((tries < frameCount) && (textsCount > bubbleCount)) {
+            can_make = false;
+            System.out.println(textsCount + " > " + bubbleCount);
+            System.out.println("Attempting to find a frame with more bubbles...");
+            createCartoonStrip(outputDirectory, texts, nicks, tries + 1);
+        }
+        if (can_make){
+            for (int i = 0; i < numBubbles; i++) {
+                int maxLength = Integer.parseInt(p.getProperty("maxlength" + (i + 1), "20"));
+                int[] b = (int[])positions.removeFirst();
+                int[] n = (int[])positions.removeFirst();
+
+                int extraWidth = 0;
+                int extraHeight = 0;
+                // Add bubble text
+                String text = texts.get(texts.size() - numBubbles + i);
+
+                //text too long? try shortening it
+                if ((text.length() > maxLength)) {
+                    System.out.println(text.length() + " > " + maxLength);
+                    System.out.println("Text ("+ text +") is too long, adding more space");
+                    extraWidth = text.length() - maxLength;
+                    extraHeight = text.length() - maxLength;
+                    System.out.println("Before: " + b[2] + "x" + b[3] + " | After: " + (b[2] + extraWidth) + "x" + (b[3] + extraHeight));
+                    //text = text.replaceAll("^((?:\\W*\\w+){" + n + "}).*$", "$1"); 
+                }
+
+                addText(image, text, b[0], b[1], (b[2] + extraWidth), (b[3] + extraHeight));
+                System.out.println("adding caption number " + i);
+            }
+            String archiveFilename = "cartoon-" + (date.getTime()/1000) + "-" + backgroundFilename;
+            ImageIO.write(image, "png", new File(outputDirectory, "cartoon.png"));
+            ImageIO.write(image, "png", new File(outputDirectory, archiveFilename));
+            return archiveFilename;
+        }else{
+            return "false";
+        }
     }
-    
-    //public static void main(String[] args) throws IOException {
-    //    createCartoonStrip(new String[]{"lo bob", "you have pie?", "How rare!"},
-    //                       new String[]{"weebl", "weebl", "bob"});
-    //}
-    
 }
