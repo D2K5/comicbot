@@ -22,6 +22,7 @@ import java.awt.image.*;
 import java.awt.font.*;
 import java.text.*;
 import javax.imageio.*;
+import java.lang.reflect.Array; 
 
 /**
  * This is a big nasty dirty hack.
@@ -95,101 +96,175 @@ public class ComicTest {
                 frameCount++;
             }
         }
-        // Pick a random ini file to make the cartoon with.
-        File file = (File)inis.get((int)(Math.random()*inis.size()));
-
-        // Pick a specific ini file to make the cartoon with.
-        //File file = (File)inis.get(tries);
-
-        // Get the properties from the file.
-        Properties p = new Properties();
-        p.load(new FileInputStream(file));
+        ArrayList frames = new ArrayList();
+        ArrayList bubbles = new ArrayList();
+        ArrayList positions = new ArrayList();
+        ArrayList lengths = new ArrayList();
+        ArrayList goodCandidates = new ArrayList();
+        ArrayList badCandidates = new ArrayList();
         
-        // create the background image for the cartoon strip.
-        String backgroundFilename = p.getProperty("background");
+        for (int i = 0; i < inis.size(); i++) {
+            File file = (File)inis.get(i);
+            Properties p = new Properties();
+            p.load(new FileInputStream(file));
+            //System.out.println("Frame #" + i + ": " + p.getProperty("background"));
+            frames.add(p.getProperty("background"));
+            positions.add(0);
+            String bubblePositions = "";
+            String bubbleLenghts = "";
+            for (int b = 1; b <= 9; b++) {
+                String bubblePos = p.getProperty("bubble" + b);
+                String nickPos = p.getProperty("nick" + b);
+                String strLength = p.getProperty("maxlength" + b);
+                if (bubblePos != null || nickPos != null) {
+                    //System.out.println("Bubble #" + b + ": " + bubblePos);
+                    bubblePositions = bubblePositions + bubblePos + ";";
+                    positions.set(i, (int)positions.get(i) + 1);
+                }
+                if (strLength != null) {
+                    //System.out.println("Bubble #" + b + ": " + bubblePos);
+                    bubbleLenghts = bubbleLenghts + strLength + ";";
+                }
+            }
+            bubbles.add(bubblePositions);
+            lengths.add(bubbleLenghts);
+        }
+
+        //System.out.println("Text length: " + texts.size());
+
+        for (int i = 0; i < frames.size(); i++) {
+            //System.out.println(frames.get(i));
+            //System.out.println(bubbles.get(i));
+            //System.out.println(texts + " vs " + positions.get(i));
+            // String bubbleString = (String) bubbles.get(i);
+            // String[] bubblePos = bubbleString.split(";");
+            // int bubbleCount = bubblePos.length;
+            // System.out.println("Bubble positions: " + bubbleCount);
+            // if (texts < (int)positions.get(i)){
+            //     System.out.println("texts is shorter than positions");
+            // }
+            // if (texts > (int)positions.get(i)){
+            //     System.out.println("texts is longer than positions");
+            // }
+            int result = texts.size() - (int)positions.get(i);
+            if (result < 0) {
+                result *= -1;
+            }
+            if (texts.size() >= (int)positions.get(i)){
+                if (result <= 2){
+                    System.out.println("Good candidate: " + frames.get(i) + " (" + positions.get(i) + " bubbles)");
+                    goodCandidates.add(i);
+                }else{
+                    System.out.println("Bad candidate: " + frames.get(i) + " (" + positions.get(i) + " bubbles)");
+                    badCandidates.add(i);
+                }
+            }
+        }
+
+        // for (int i = 0; i < goodCandidates.size(); i++) {
+        //     //System.out.println(goodCandidates.get(i));
+        //     for (int f = 0; f < frames.size(); f++) {
+        //         if (f == (int)goodCandidates.get(i)){
+        //             System.out.println("Good gandidate: " + frames.get(f));
+        //         }
+        //     }
+        // }
+
+        // for (int i = 0; i < badCandidates.size(); i++) {
+        //     //System.out.println(goodCandidates.get(i));
+        //     for (int f = 0; f < frames.size(); f++) {
+        //         if (f == (int)badCandidates.get(i)){
+        //             System.out.println("Bad candidate: " + frames.get(f));
+        //         }
+        //     }
+        // }
+
+    //System.out.println("Trying 100 times");
+    //for (int i = 0; i < 100; i++) {
+        int framePicked = 0;
+        Random rand = new Random(); 
+        if (Math.random() < 0.5 && goodCandidates.size() >= 1){
+            framePicked = (int)goodCandidates.get(rand.nextInt(goodCandidates.size()));
+            System.out.println("i1 Picked good candidate: " + frames.get(framePicked));
+        }else if (Math.random() < 0.7){
+            if (Math.random() < 0.5 && goodCandidates.size() >= 1){
+                framePicked = (int)goodCandidates.get(rand.nextInt(goodCandidates.size()));
+                System.out.println("i2 Picked good candidate: " + frames.get(framePicked));
+            }else if (badCandidates.size() >= 1){
+                framePicked = (int)badCandidates.get(rand.nextInt(badCandidates.size()));
+                System.out.println("i2 Picked bad candidate: " + frames.get(framePicked));
+            }else{
+                return "false";
+            }
+        }else if (badCandidates.size() >= 1){
+            framePicked = (int)badCandidates.get(rand.nextInt(badCandidates.size()));
+            System.out.println("i1 Picked bad candidate: " + frames.get(framePicked));
+        }else{
+            return "false";
+        }
+    //}
+        
+        ArrayList bubblePos = new ArrayList();
+        ArrayList lengthAmount = new ArrayList();
+
+        String backgroundFilename = (String)frames.get(framePicked);
         BufferedImage image = ImageIO.read(new File("./data/" + backgroundFilename));
-        
-        // write on a datestamp.
-        String datestampPos = p.getProperty("datestamp");
-        String[] datestampSplit = datestampPos.split("[\\s,]+");
-        int x = Integer.parseInt(datestampSplit[0]);
-        int y = Integer.parseInt(datestampSplit[1]);
-        Date date = new Date();
-        Graphics2D g2d = (Graphics2D)image.getGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setColor(Color.black);
-        g2d.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        g2d.drawString(date.toString(), x, y);
-        
-        LinkedList positions = new LinkedList();
-        
-        // Parse up to texts.length things to stick into the cartoon.
-        for (int i = 1; i <= texts.size(); i++) {
-            String bubblePos = p.getProperty("bubble" + i);
-            String nickPos = p.getProperty("nick" + i);
-            if (bubblePos == null || nickPos == null) {
-                break;
-            }
-            // Work out the positions of both things.
-            String[] bubbleSplit = bubblePos.split("[\\s,]+");
-            String[] nickSplit = nickPos.split("[\\s,]+");
-            int[] bubbleLoc = new int[4];
-            int[] nickLoc = new int[4];
-            for (int j = 0; j < 4; j++) {
-                bubbleLoc[j] = Integer.parseInt(bubbleSplit[j]);
-                nickLoc[j] = Integer.parseInt(nickSplit[j]);
-            }
-            
-            positions.add(bubbleLoc);
-            positions.add(nickLoc);
-            
-            System.out.println("adding caption number " + i);
-        }
-        
-        int numBubbles = positions.size() / 2;
-        int bubbleCount = numBubbles;
-        int textsCount = texts.size();
 
-        System.out.println("texts: " + textsCount + " | bubbles: " + bubbleCount + " (" + backgroundFilename + ") random try: " + tries + "/" + frameCount + " different frames");
-        //too few lines? try a different frame
-        if ((tries < frameCount) && (textsCount < bubbleCount)) {
-            can_make = false;
-            System.out.println(textsCount + " < " + bubbleCount);
-            System.out.println("Attempting to find a frame with less bubbles...");
-            return createCartoonStrip(outputDirectory, texts, nicks, tries + 1);
+        String bubbleString = (String) bubbles.get(framePicked);
+        String lengthString = (String) lengths.get(framePicked);
+
+        for (String s : bubbleString.split(";")) {
+            bubblePos.add(s);
         }
-        tries = 0;
-        //not enough lines? try a different frame
-        if ((tries < frameCount) && (textsCount > bubbleCount)) {
-            can_make = false;
-            System.out.println(textsCount + " > " + bubbleCount);
-            System.out.println("Attempting to find a frame with more bubbles...");
-            return createCartoonStrip(outputDirectory, texts, nicks, tries + 1);
+
+        for (String s : lengthString.split(";")) {
+            lengthAmount.add(s);
         }
+
+        
+        int numBubbles = (int) positions.get(framePicked);
+        
         if (can_make){
             for (int i = 0; i < numBubbles; i++) {
-                int maxLength = Integer.parseInt(p.getProperty("maxlength" + (i + 1), "20"));
-                int[] b = (int[])positions.removeFirst();
-                int[] n = (int[])positions.removeFirst();
-
                 int extraWidth = 0;
                 int extraHeight = 0;
-                // Add bubble text
-                String text = texts.get(texts.size() - numBubbles + i);
 
-                //text too long? try shortening it
+                // Add bubble text
+                ArrayList bubblePositions = new ArrayList();
+                String bubblePosString = (String) bubblePos.get(i);
+
+                for (String s : bubblePosString.split(",")) {
+                    bubblePositions.add(s);
+                }
+                String text = (String) texts.get(texts.size() - numBubbles + i);
+
+                int maxLength = Integer.parseInt((String)lengthAmount.get(i));
+                //System.out.println(bubblePositions);
+                //text too long? try making the bubbles bigger
                 if ((text.length() > maxLength)) {
                     System.out.println(text.length() + " > " + maxLength);
                     System.out.println("Text ("+ text +") is too long, adding more space");
-                    extraWidth = text.length() - maxLength;
-                    extraHeight = text.length() - maxLength;
-                    System.out.println("Before: " + b[2] + "x" + b[3] + " | After: " + (b[2] + extraWidth) + "x" + (b[3] + extraHeight));
-                    //text = text.replaceAll("^((?:\\W*\\w+){" + n + "}).*$", "$1"); 
+                    int result = texts.size() - (int)positions.get(i);
+                    if (result < 0) {
+                        result *= -1;
+                    }
+                    if (texts.size() >= (int)positions.get(i)){
+                        if (result <= 2){
+                            extraWidth = 5; //text.length() - maxLength;
+                            extraHeight = 5; //text.length() - maxLength;
+                        }else{
+                            extraWidth = 10; //text.length() - maxLength;
+                            extraHeight = 10; //text.length() - maxLength;
+                        }
+                    }
+
+                    //System.out.println("Before: " + bubblePositions.get(2) + "x" + bubblePositions.get(3) + " | After: " + ((int)bubblePositions.get(2) + extraWidth) + "x" + ((int)bubblePositions.get(3) + extraHeight));
                 }
 
-                addText(image, text, b[0], b[1], (b[2] + extraWidth), (b[3] + extraHeight));
+                addText(image, text, Integer.parseInt((String)bubblePositions.get(0)), Integer.parseInt((String)bubblePositions.get(1)), (Integer.parseInt((String)bubblePositions.get(2)) + extraWidth), (Integer.parseInt((String)bubblePositions.get(3)) + extraHeight));
                 System.out.println("adding caption number " + i);
             }
+            Date date = new Date();
             String archiveFilename = "cartoon-" + (date.getTime()/1000) + "-" + backgroundFilename;
             ImageIO.write(image, "png", new File(outputDirectory, "cartoon.png"));
             ImageIO.write(image, "png", new File(outputDirectory, archiveFilename));
