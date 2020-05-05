@@ -17,12 +17,11 @@ $Id: ComicTest.java,v 1.3 2004/02/01 13:19:54 pjm2 Exp $
 import java.io.*;
 import java.util.*;
 import java.awt.*;
-import java.awt.geom.*;
 import java.awt.image.*;
 import java.awt.font.*;
 import java.text.*;
 import javax.imageio.*;
-import java.lang.reflect.Array; 
+import java.nio.charset.*;
 
 /**
  * This is a big nasty dirty hack.
@@ -31,6 +30,39 @@ import java.lang.reflect.Array;
  * @author Paul Mutton http://www.jibble.org/comicbot/
  */
 public class ComicTest {
+
+    static String getAlphaNumericString(int n) 
+    { 
+        // length is bounded by 256 Character 
+        byte[] array = new byte[256]; 
+        new Random().nextBytes(array); 
+  
+        String randomString 
+            = new String(array, Charset.forName("UTF-8")); 
+  
+        // Create a StringBuffer to store the result 
+        StringBuffer r = new StringBuffer(); 
+  
+        // Append first 20 alphanumeric characters 
+        // from the generated random String into the result 
+        for (int k = 0; k < randomString.length(); k++) { 
+  
+            char ch = randomString.charAt(k); 
+  
+            if (((ch >= 'a' && ch <= 'z') 
+                 || (ch >= 'A' && ch <= 'Z') 
+                 || (ch >= '0' && ch <= '9')) 
+                && (n > 0)) { 
+  
+                r.append(ch); 
+                n--; 
+            } 
+        } 
+  
+        // return the resultant string 
+        return r.toString(); 
+    } 
+  
     
     public static BufferedImage getTextImage(String text, int width, int height) {
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB );
@@ -89,11 +121,9 @@ public class ComicTest {
         boolean can_make = true;
         File[] filenames = new File("./data").listFiles();
         ArrayList inis = new ArrayList();
-        int frameCount = 0;
         for (int i = 0; i < filenames.length; i++) {
             if (filenames[i].getName().endsWith(".ini")) {
                 inis.add(filenames[i]);
-                frameCount++;
             }
         }
         ArrayList frames = new ArrayList();
@@ -265,8 +295,8 @@ public class ComicTest {
                 System.out.println("adding caption number " + i);
             }
             Date date = new Date();
-            String archiveFilename = "cartoon-" + (date.getTime()/1000) + "-" + backgroundFilename;
-            ImageIO.write(image, "png", new File(outputDirectory, "cartoon.png"));
+            String archiveFilename = "cartoon-" + getAlphaNumericString(5) + (date.getTime()/1000) + getAlphaNumericString(5) + "-" + backgroundFilename;
+            // ImageIO.write(image, "png", new File(outputDirectory, "cartoon.png"));
             ImageIO.write(image, "png", new File(outputDirectory, archiveFilename));
             return archiveFilename;
         }else{
