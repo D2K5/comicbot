@@ -55,20 +55,25 @@ public class CartoonStripBot extends PircBot{
 
         //trim spaces
         message = message.trim();
-        processMessage(sender, message);
+        processMessage(channel, sender, message);
     }
 
     public void onAction(String sender, String login, String hostname, String target, String action) {
         if (action.contains("uploaded")){
             System.out.println("contains an upload, ignoring");
         }else{
-            processMessage(sender, "*" + action + "*");
+            processMessage(target, sender, "*" + action + "*");
         }
     }
  
-    public void processMessage(String sender, String message) {
+    public void processMessage(String channel, String sender, String message) {
         Boolean can_add = true;
         Boolean found = false;
+
+        //is the message in the right channel?
+        if (!channel.equals(_channel)){
+            can_add = false;
+        }
 
         //is empty?
         if(message == null || message == " " || message == "" || message.isEmpty()) {
