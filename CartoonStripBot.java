@@ -95,6 +95,11 @@ public class CartoonStripBot extends PircBot{
         {
             if (lowMsg.startsWith(split[i]))
             {
+                System.out.println(lowMsg);
+                if(lowMsg.contains(" ")) {
+                    _quotes.add(message);
+                    _senders.add(sender);
+                }
                 found = true;
                 break;
             }
@@ -102,8 +107,8 @@ public class CartoonStripBot extends PircBot{
 
         if ((_quotes.size() <= MAX_QUOTES) && (_quotes.size() >= MIN_QUOTES) && found && can_add) {
             // add the current quote, so that it's always the last thing said
-            //_quotes.add(message);
-            //_senders.add(sender);
+            // _quotes.add(message);
+            // _senders.add(sender);
 
             // Let's make a cartoon!
             try {
