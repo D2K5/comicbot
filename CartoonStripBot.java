@@ -95,13 +95,20 @@ public class CartoonStripBot extends PircBot{
         {
             if (lowMsg.startsWith(split[i]))
             {
-                System.out.println(lowMsg);
-                if(lowMsg.contains(" ")) {
-                    _quotes.add(message);
-                    _senders.add(sender);
-                }
                 found = true;
                 break;
+            }
+        }
+
+        if (can_add){
+            if ((found == false) || (found == true && message.contains(" "))){
+                System.out.println("Quote Added: <" + sender + "> " + message);
+                _quotes.add(message);
+                _senders.add(sender);
+                if (_quotes.size() > MAX_QUOTES) {
+                    _quotes.remove(0);
+                    _senders.remove(0);
+                }
             }
         }
 
@@ -120,21 +127,12 @@ public class CartoonStripBot extends PircBot{
                 }
             }
             catch (IOException e) {
-                //sendMessage(_channel, "Urgh, I'm crap cos I just did this: " + e);
+                sendMessage(_channel, "Urgh, I'm crap cos I just did this: " + e);
             }
             _quotes.clear();
             _senders.clear();
-        } else {
-            if (can_add){
-                System.out.println("Quote Added: <" + sender + "> " + message);
-                _quotes.add(message);
-                _senders.add(sender);
-                if (_quotes.size() > MAX_QUOTES) {
-                    _quotes.remove(0);
-                    _senders.remove(0);
-                }
-            }
         }
+
     }
           
     public static void main(String[] args) throws Exception {
