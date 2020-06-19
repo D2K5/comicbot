@@ -163,8 +163,8 @@ public class ComicTest {
         //System.out.println("Text length: " + texts.size());
 
         for (int i = 0; i < frames.size(); i++) {
-            //System.out.println(frames.get(i));
-            //System.out.println(bubbles.get(i));
+            //System.out.println("frames: " + frames.get(i));
+            //System.out.println("bubbles: " + bubbles.get(i));
             //System.out.println(texts + " vs " + positions.get(i));
             // String bubbleString = (String) bubbles.get(i);
             // String[] bubblePos = bubbleString.split(";");
@@ -182,15 +182,15 @@ public class ComicTest {
             }
             if (texts.size() >= (int)positions.get(i)){
                 if (result <= 2){
-                    System.out.println("Good candidate: " + frames.get(i) + " (" + positions.get(i) + " bubbles)");
+                    System.out.println("Added good candidate: " + frames.get(i) + " (" + positions.get(i) + " bubbles)");
                     goodCandidates.add(i);
                 }else{
-                    System.out.println("Bad candidate: " + frames.get(i) + " (" + positions.get(i) + " bubbles)");
+                    System.out.println("Added bad candidate: " + frames.get(i) + " (" + positions.get(i) + " bubbles)");
                     badCandidates.add(i);
                 }
             }
         }
-
+        System.out.println("Finished adding candidates...");
         // for (int i = 0; i < goodCandidates.size(); i++) {
         //     //System.out.println(goodCandidates.get(i));
         //     for (int f = 0; f < frames.size(); f++) {
@@ -211,6 +211,7 @@ public class ComicTest {
 
     //System.out.println("Trying 100 times");
     //for (int i = 0; i < 100; i++) {
+        System.out.println("Picking candidates...");
         int framePicked = 0;
         Random rand = new Random(); 
         if (Math.random() < 0.5 && goodCandidates.size() >= 1){
@@ -224,16 +225,18 @@ public class ComicTest {
                 framePicked = (int)badCandidates.get(rand.nextInt(badCandidates.size()));
                 System.out.println("i2 Picked bad candidate: " + frames.get(framePicked));
             }else{
-                return "false";
+                framePicked = (int)goodCandidates.get(rand.nextInt(goodCandidates.size()));
+                System.out.println("i3 Picked good candidate: " + frames.get(framePicked));
             }
         }else if (badCandidates.size() >= 1){
             framePicked = (int)badCandidates.get(rand.nextInt(badCandidates.size()));
             System.out.println("i1 Picked bad candidate: " + frames.get(framePicked));
         }else{
-            return "false";
+            framePicked = (int)goodCandidates.get(rand.nextInt(goodCandidates.size()));
+            System.out.println("i3 Picked good candidate: " + frames.get(framePicked));
         }
     //}
-        
+        System.out.println("Picked " + (String)frames.get(framePicked) + "...");
         ArrayList bubblePos = new ArrayList();
         ArrayList lengthAmount = new ArrayList();
 
@@ -255,6 +258,7 @@ public class ComicTest {
         int numBubbles = (int) positions.get(framePicked);
         
         if (can_make){
+            System.out.println("Attempting to make a comic...");
             for (int i = 0; i < numBubbles; i++) {
                 int extraWidth = 0;
                 int extraHeight = 0;
@@ -292,8 +296,9 @@ public class ComicTest {
                 }
 
                 addText(image, text, Integer.parseInt((String)bubblePositions.get(0)), Integer.parseInt((String)bubblePositions.get(1)), (Integer.parseInt((String)bubblePositions.get(2)) + extraWidth), (Integer.parseInt((String)bubblePositions.get(3)) + extraHeight));
-                System.out.println("adding caption number " + i);
+                System.out.println("Adding caption number " + i);
             }
+            System.out.println("Making a comic...");
             Date date = new Date();
             String archiveFilename = "cartoon-" + getAlphaNumericString(5) + (date.getTime()/1000) + getAlphaNumericString(5) + "-" + backgroundFilename;
             // ImageIO.write(image, "png", new File(outputDirectory, "cartoon.png"));

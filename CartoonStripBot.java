@@ -127,7 +127,7 @@ public class CartoonStripBot extends PircBot{
                 }
             }
             catch (IOException e) {
-                sendMessage(_channel, "Urgh, I'm crap cos I just did this: " + e);
+                sendMessage(_channel, "Mommy! Help! I just did this: " + e);
             }
             _quotes.clear();
             _senders.clear();
